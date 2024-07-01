@@ -1189,6 +1189,16 @@
 			"replaceE": ".pagination:not(#breadcrumb_multipage_popup)"
 		}
 	},
+	"ptt.cc": {
+		"host": "www.ptt.cc",
+		"url": "/^\\/bbs\\/.+\\/index/",
+		"blank": 3,
+		"pager": {
+			"nextL": "//a[@class='btn wide'][contains(text(),'‹')]",
+			"pageE": ".r-ent",
+			"replaceE": ".btn-group-paging"
+		}
+	},
 	"Microsoft Community - 帖子内": {
 		"host": "answers.microsoft.com",
 		"url": "/\\/forum\\/all\\//",
@@ -3834,6 +3844,16 @@
 			"nextL": "li.chapter.next a",
 			"pageE": "#workskin>div",
 			"replaceE": "#main ul.navigation, #feedback>ul.actions"
+		}
+	},
+	"红袖招": {
+		"host": "hongxiuzhao.org",
+		"url": "return (fun.getCSS('.pager')&&fun.getCSS('.article-content'))",
+		"style": ".article-content>*:not(p:not([style])):not(h1),.browser_tips",
+		"pager": {
+			"nextL": "//div[@class='pager']/a[contains(text(),'下一页')]",
+			"pageE": ".article-content>p:not([style]):not(:last-of-type)",
+			"replaceE": ".pager"
 		}
 	},
 	"蓝鲨": {
