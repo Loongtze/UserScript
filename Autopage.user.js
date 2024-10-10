@@ -3,7 +3,7 @@
 // @name:zh-CN   自动无缝翻页
 // @name:zh-TW   自動無縫翻頁
 // @name:en      AutoPager
-// @version      6.6.40
+// @version      6.6.42
 // @author       X.I.U
 // @description  ⭐无缝加载 下一页内容 至网页底部（类似瀑布流，无限滚动，无需手动点击下一页）⭐，目前支持：【所有「Discuz!、Flarum、phpBB、MyBB、Xiuno、XenForo、NexusPHP...」论坛】【百度、谷歌(Google)、必应(Bing)、搜狗、微信、360、Yahoo、Yandex 等搜索引擎...】、贴吧、豆瓣、知乎、NGA、V2EX、起点中文、千图网、千库网、Pixabay、Pixiv、3DM、游侠网、游民星空、NexusMods、Steam 创意工坊、CS.RIN.RU、RuTracker、BT之家、萌番组、动漫花园、樱花动漫、爱恋动漫、AGE 动漫、Nyaa、SrkBT、RARBG、SubHD、423Down、不死鸟、扩展迷、小众软件、【动漫狂、动漫屋、漫画猫、漫画屋、漫画 DB、HiComic、Mangabz、Xmanhua 等漫画网站...】、PubMed、Z-Library、GreasyFork、Github、StackOverflow（以上仅一小部分常见网站，更多的写不下了...
 // @description:zh-TW  ⭐無縫加載 下一頁內容 至網頁底部（類似瀑布流，无限滚动，無需手働點擊下一頁）⭐，支持各論壇、社交、遊戲、漫畫、小說、學術、搜索引擎(Google、Bing、Yahoo...) 等網站~
@@ -203,7 +203,7 @@
         let support = false;
         end:
         for (let now in DBSite) { // 遍历 对象
-            if (!DBSite[now].host) continue; // 如果不存在则继续下一个循环
+            if (DBSite[now].ignore) continue; // 如果是特殊的内置规则（如通用规则）则跳过直接继续下一个循环
 
             DBSiteNow = DBSite[now] // 供其他函数在 域名/URL 判断阶段使用
 
@@ -242,7 +242,8 @@
             } else {
                 // 针对自定义翻页规则中的正则
                 if (typeof DBSite[now].host === 'string' && DBSite[now].host.slice(0,1) === '/') DBSite[now].host = new RegExp(DBSite[now].host.slice(1,DBSite[now].host.length-1))
-                if ((DBSite[now].host instanceof RegExp && DBSite[now].host.test(location.hostname)) || (typeof DBSite[now].host === 'string' && DBSite[now].host === location.hostname)) {
+                if ((DBSite[now].host === undefined) || (DBSite[now].host instanceof RegExp && DBSite[now].host.test(location.hostname)) || (typeof DBSite[now].host === 'string' && DBSite[now].host === location.hostname)) {
+                    // 如果没有指定 host 规则，那么默认匹配所有域名（会对所有域名匹配 url 规则判断），可以当成一个简单的外置（自定义）通用规则方案
 
                     if (self != top) {if (!DBSite[now].iframe) continue;} // 如果当前位于 iframe 框架下，就需要判断是否需要继续执行
                     if (DBSite[now].url) {
@@ -555,6 +556,7 @@ function: {
     */ //<<< 规则简单说明 >>>
         DBSite = {
             loadmore: {
+                ignore: true,
                 url: function(nextL) {curSite = DBSite.loadmore; curSite.pager.nextL = nextL;},
                 pager: {
                     type: 2,
@@ -563,6 +565,7 @@ function: {
                 }
             }, //           部分自带 自动无缝翻页 的网站
             wp_article: {
+                ignore: true,
                 url: ()=> {
                     if (!indexOF('/post/') && !getCSS('#comments, .comments-area, #disqus_thread')) {
                         curSite = DBSite.wp_article;
@@ -582,6 +585,7 @@ function: {
                 }
             }, //         部分使用 WordPress 的网站
             wp_article_post: {
+                ignore: true,
                 pager: {
                     type: 3,
                     scrollD: 3000
@@ -591,6 +595,7 @@ function: {
                 }
             }, //    部分使用 WordPress 的网站 - 文章内
             typecho_handsome: {
+                ignore: true,
                 url: ()=> {if (getCSS('nav:not([id=comment-navigation]) .page-navigator')) {curSite = DBSite.typecho_handsome;}},
                 blank: 3,
                 pager: {
@@ -600,6 +605,7 @@ function: {
                 }
             }, //   部分使用 Typecho 的网站 (handsome)
             typecho_mirages: {
+                ignore: true,
                 url: ()=> {if (getAllCSS('#index>article, #archive>article').length > 3 && getCSS('li.next')) {curSite = DBSite.typecho_mirages;}},
                 blank: 3,
                 pager: {
@@ -610,6 +616,7 @@ function: {
                 }
             }, //    部分使用 Typecho 的网站 (Mirages)
             biquge1: {
+                ignore: true,
                 url: ()=> {curSite = DBSite.biquge1;xs_bF(getAllCSS('.content > #content'),[/<br>.{0,10}秒记住.+$/, '']);},
                 style: 'img, .posterror, a[href*="posterror()"], [style*="background"][style*="url("]:not(html):not(body), #content > *:not(br):not(p), #content>.readinline {display: none !important;}',
                 history: true,
@@ -626,6 +633,7 @@ function: {
                 }
             }, //            笔趣阁 1 模板的小说网站
             biquge1_m: {
+                ignore: true,
                 style: 'img, .posterror, .show-app2, a[href*="posterror()"], [onclick*="location.href"], [style*="background"][style*="url("]:not(html):not(body), #nr1>*:not(br):not(p), #chaptercontent>*:not(br):not(p), .Readarea>*:not(br):not(p), .ReadAjax_content>*:not(br):not(p), #nr1>.readinline, #chaptercontent>.readinline, .Readarea>.readinline, .ReadAjax_content>.readinline {display: none !important;}',
                 history: true,
                 retry: 3000,
@@ -637,6 +645,7 @@ function: {
                 }
             }, //          笔趣阁 1 - 手机版 模板的小说网站
             biquge2: {
+                ignore: true,
                 url: ()=> {if (isMobile() || getCSS('.chapter-page-btn') != null) {curSite = DBSite.biquge2_m;} else {curSite = DBSite.biquge2;}},
                 style: 'img, .posterror, a[href*="posterror()"], [style*="background"][style*="url("]:not(html):not(body), #txt > *:not(br):not(p), #txt>.readinline, .txt>.readinline {display: none !important;}',
                 history: true,
@@ -652,6 +661,7 @@ function: {
                 }
             }, //            笔趣阁 2 模板的小说网站
             biquge2_m: {
+                ignore: true,
                 style: 'img, .posterror, a[href*="posterror()"], [style*="background"][style*="url("]:not(html):not(body), #txt > *:not(br):not(p), #txt>.readinline, .txt>.readinline {display: none !important;}',
                 history: true,
                 retry: 3000,
@@ -663,6 +673,7 @@ function: {
                 }
             }, //          笔趣阁 2 - 手机版 模板的小说网站
             biquge3: {
+                ignore: true,
                 style: 'img, .posterror, a[href*="posterror()"], [style*="background"][style*="url("]:not(html):not(body), script+div[style="padding:15px;"], p[style*="font-weight:"] {display: none !important;}',
                 history: true,
                 retry: 3000,
@@ -677,6 +688,7 @@ function: {
                 }
             }, //            笔趣阁 3 模板的小说网站
             yingshi: {
+                ignore: true,
                 style: 'div.stui-page__all, div.myui-page__all {display: none !important;}',
                 blank: 3,
                 pager: {
@@ -690,6 +702,7 @@ function: {
                 }
             }, //            部分影视网站
             yingshi2: {
+                ignore: true,
                 blank: 3,
                 style: '.module-poster-item, .module-items>* {display: inline-block !important;}',
                 pager: {
@@ -702,6 +715,7 @@ function: {
                 }
             }, //           部分影视网站 2
             meinvtu_m: {
+                ignore: true,
                 history: true,
                 blank: 3,
                 pager: {
@@ -713,6 +727,7 @@ function: {
                 }
             }, //          部分美女图站 - 手机版
             discuz_forum: {
+                ignore: true,
                 pager: {
                     type: 2,
                     nextL: '#autopbn',
@@ -720,6 +735,7 @@ function: {
                 }
             }, //       Discuz! 论坛 - 帖子列表（自带无缝加载下一页按钮的）
             discuz_guide: {
+                ignore: true,
                 pager: {
                     nextL: 'a.nxt:not([href^="javascript"]) ,a.next:not([href^="javascript"])',
                     pageE: 'tbody[id^="normalthread_"]',
@@ -728,6 +744,7 @@ function: {
                 }
             }, //       Discuz! 论坛 - 导读页 及 帖子列表（不带无缝加载下一页按钮的）
             discuz_waterfall: {
+                ignore: true,
                 pager: {
                     nextL: 'a.nxt:not([href^="javascript"]) ,a.next:not([href^="javascript"])',
                     pageE: '#waterfall > li',
@@ -736,6 +753,7 @@ function: {
                 }
             }, //   Discuz! 论坛 - 图片模式的帖子列表（不带无缝加载下一页按钮的）
             discuz_thread: {
+                ignore: true,
                 thread: true,
                 style: '.pgbtn, .viewthread:not(:first-of-type)>h1, .viewthread:not(:first-of-type)>ins, .viewthread:not(:first-of-type)>.headactions {display: none;}',
                 pager: {
@@ -750,6 +768,7 @@ function: {
                 }
             }, //      Discuz! 论坛 - 帖子内
             discuz_search: {
+                ignore: true,
                 pager: {
                     nextL: 'a.nxt:not([href^="javascript"]) ,a.next:not([href^="javascript"])',
                     pageE: '#threadlist > ul',
@@ -758,6 +777,7 @@ function: {
                 }
             }, //      Discuz! 论坛 - 搜索页
             discuz_youspace: {
+                ignore: true,
                 pager: {
                     nextL: 'a.nxt:not([href^="javascript"]) ,a.next:not([href^="javascript"])',
                     pageE: 'form:not([action^="search.php?"]) tbody > tr:not(.th)',
@@ -766,6 +786,7 @@ function: {
                 }
             }, //    Discuz! 论坛 - 回复页、主题页（别人的）
             discuz_collection: {
+                ignore: true,
                 pager: {
                     nextL: 'a.nxt:not([href^="javascript"]) ,a.next:not([href^="javascript"])',
                     pageE: '#ct .bm_c table > tbody',
@@ -774,12 +795,14 @@ function: {
                 }
             }, //  Discuz! 论坛 - 淘帖页
             discuz_archiver: {
+                ignore: true,
                 pager: {
                     nextL: '//div[@id="content"][last()]//div[@class="page"]/strong/following-sibling::a[1]',
                     pageE: '#content'
                 }
             }, //  Discuz! 论坛 - 归档页
             discuz_m: {
+                ignore: true,
                 thread: true,
                 pager: {
                     nextL: '//a[@class="nxt" or @class="next"] | //div[@class="page"]/a[text()="下一页" or contains(text(), ">")]',
@@ -789,6 +812,7 @@ function: {
                 }
             }, //           Discuz! 论坛 - 触屏手机版 - 帖子内
             discuz_m_forum: {
+                ignore: true,
                 pager: {
                     type: 2,
                     nextL: 'a.loadmore',
@@ -797,6 +821,7 @@ function: {
                 }
             }, //     Discuz! 论坛 - 触屏手机版 - 帖子列表（自带无缝加载下一页按钮的）
             flarum: {
+                ignore: true,
                 url: ()=> {urlC = true;if (!indexOF('/d/')) {if(getCSS('.DiscussionList-loadMore')){curSite = DBSite.flarum;}else if(getCSS('a.Button--primary')){curSite = DBSite.flarum2;}}},
                 pager: {
                     type: 2,
@@ -805,6 +830,7 @@ function: {
                 }
             }, //             Flarum 论坛
             flarum2: {
+                ignore: true,
                 blank: 4,
                 pager: {
                     type: 6,
@@ -814,6 +840,7 @@ function: {
                 }
             }, //             Flarum 论坛 - 带页码的
             phpbb: {
+                ignore: true,
                 url: ()=> {if (indexOF('/viewforum.php')) {
                     curSite = DBSite.phpbb;
                 } else if (indexOF('/viewtopic.php')) {
@@ -828,6 +855,7 @@ function: {
                 }
             }, //              phpBB 论坛 - 帖子列表
             phpbb_post: {
+                ignore: true,
                 thread: true,
                 pager: {
                     nextL: '.pagination li.next a[rel="next"], .topic-actions .pagination strong~a',
@@ -836,6 +864,7 @@ function: {
                 }
             }, //         phpBB 论坛 - 帖子内
             phpbb_search: {
+                ignore: true,
                 pager: {
                     nextL: '.pagination li.next a[rel="next"], .topic-actions .pagination strong~a',
                     pageE: 'div.search.post',
@@ -843,6 +872,7 @@ function: {
                 }
             }, //       phpBB 论坛 - 搜索页
             xenforo: {
+                ignore: true,
                 url: ()=> {if (indexOF(/\/(forums|f)\//) || (getCSS(DBSite.xenforo.pager.nextL) && getCSS(DBSite.xenforo.pager.pageE))) {
                     curSite = DBSite.xenforo;
                 } else if (indexOF(/\/(threads|t)\//) || (getCSS(DBSite.xenforo.pager.nextL) && getCSS(DBSite.xenforo_post.pager.pageE))) {
@@ -858,6 +888,7 @@ function: {
                 }
             }, //            XenForo 论坛 - 帖子列表
             xenforo_post: {
+                ignore: true,
                 thread: true,
                 pager: {
                     nextL: 'a.pageNav-jump--next',
@@ -867,6 +898,7 @@ function: {
                 }
             }, //       XenForo 论坛 - 帖子内
             xenforo_search: {
+                ignore: true,
                 pager: {
                     nextL: 'a.pageNav-jump--next',
                     pageE: 'ol.block-body > li',
@@ -875,6 +907,7 @@ function: {
                 }
             }, //     XenForo 论坛 - 搜索页
             mybb: {
+                ignore: true,
                 url: ()=> {if (location.pathname.toLowerCase().indexOf('/forum') == 0 || location.pathname.toLowerCase().indexOf('/search') == 0 || (getCSS(DBSite.mybb.pager.nextL)&&getCSS(DBSite.mybb.pager.pageE))) {
                     curSite = DBSite.mybb;
                 } else if (location.pathname.toLowerCase().indexOf('thread') !== -1 || (getCSS(DBSite.mybb.pager.nextL)&&getCSS(DBSite.mybb_post.pager.pageE))) {
@@ -889,6 +922,7 @@ function: {
                 }
             }, //            MyBB 论坛 - 帖子列表
             mybb_post: {
+                ignore: true,
                 thread: true,
                 pager: {
                     pageE: '#posts>*',
@@ -896,6 +930,7 @@ function: {
                 }
             }, //       MyBB 论坛 - 帖子内
             xiuno: {
+                ignore: true,
                 url: ()=> {if (lp == '/' || indexOF(/\/(index|forum)/)) {curSite = DBSite.xiuno;} else if (indexOF('/thread')) {curSite = DBSite.xiuno_post;}},
                 pager: {
                     nextL: '//li[@class="page-item"]/a[text()="▶" or text()="»" or contains(text(),">") or contains(text(),"下一页")]',
@@ -904,6 +939,7 @@ function: {
                 }
             }, //              Xiuno 论坛 - 帖子列表
             xiuno_post: {
+                ignore: true,
                 thread: true,
                 pager: {
                     nextL: '//li[@class="page-item"]/a[text()="▶" or text()="»" or contains(text(),">") or contains(text(),"下一页")]',
@@ -912,6 +948,7 @@ function: {
                 }
             }, //         Xiuno 论坛 - 帖子内
             forgejoGitea: {
+                ignore: true,
                 url: ()=> {if (indexOF(/^\/explore\/.+/) || indexOF(/\/(issues|pulls|releases|tags)$/) || indexOF(/\/commits\/branch\/.+/) || (getCSS('.pagination>.active+.item') && getCSS('.flex-list>.flex-item'))) {curSite = DBSite.forgejoGitea;}},
                 pager: {
                     nextL: '.pagination>.active+.item',
@@ -920,6 +957,7 @@ function: {
                 }
             }, //              Forgejo/Gitea git 托管系统 - explore/issues/releases/tag/commit
             nexusphp: {
+                ignore: true,
                 url: ()=> {
                     if (lp == '/torrents.php' || getCSS('table.torrents')) {
                         curSite = DBSite.nexusphp;
@@ -957,6 +995,7 @@ function: {
                 }
             }, //               NexusMods
             nexusmods_posts: {
+                ignore: true,
                 history: false,
                 xRequestedWith: true,
                 pager: {
@@ -966,79 +1005,6 @@ function: {
                     scrollD: 3500
                 }
             }, //               NexusMods posts
-            manhuacat: {
-                host: 'www.manhuacat.com',
-                url: ()=> {if (indexOF(/\/(manga|manhua)\/\d+\/.+\.html/)) {
-                    if (getCookie('is_pull') == 'true') { // 强制关闭 [下拉] 模式
-                        document.cookie='is_pull=false; expires=Thu, 18 Dec 2031 12:00:00 GMT; path=/'; // 写入 Cookie 关闭 [下拉] 模式
-                        location.reload(); // 刷新网页
-                    }
-                    setTimeout(manhuacat_init, 100);
-                    curSite = DBSite.manhuacat;
-                }},
-                style: '#left, #right, #pull-load, .loading, .pagination, footer {display: none !important;} .img-content > img {display: block !important;margin: 0 auto !important; border: none !important; padding: 0 !important; max-width: 99% !important; height: auto !important;}', // 隐藏不需要的元素，调整图片
-                pager: {
-                    type: 4,
-                    nextL: manhuacat_nextL,
-                    insertP: ['.img-content', 3],
-                    insertE: manhuacat_insertE,
-                    replaceE: '.comic-detail > .breadcrumb-bar, .comic-detail >h2.h4, .vg-r-data, body > script:not([src])',
-                    interval: 3000,
-                    scrollD: 4000
-                }
-            }, //         漫画猫
-            hicomic: {
-                host: 'www.hicomic.net',
-                url: ()=> {if (indexOF('/chapters/')) {
-                    setTimeout(hicomic_init, 100);
-                    curSite = DBSite.hicomic;
-                }},
-                style: '.content {height: auto !important;} .footer, .left_cursor, .right_cursor, .finish {display: none !important;} .content > img {display: block !important;margin: 0 auto !important;}',
-                pager: {
-                    type: 4,
-                    nextL: hicomic_nextL,
-                    insertP: ['.content', 3],
-                    insertE: hicomic_insertE,
-                    interval: 5000,
-                    scrollD: 3000
-                }
-            }, //           HiComic (嗨漫画)
-            alimanhua: {
-                host: ['www.alimanhua.com','www.iimanhua.cc'],
-                url: ()=> {
-                    if (indexOF(/\/\d+\.html$/)) {
-                        curSite = DBSite.alimanhua;
-                        pausePage = false;
-                        setTimeout(()=>{pausePage = true;}, 5000)
-                    } else if (indexOF(/^\/(manhua|comic)\/\d+\/$/)) {
-                        setTimeout(()=>{getCSS('#openBook').click()}, 500)
-                    } else if (lp != '/'){
-                        curSite = DBSite.alimanhua_list;
-                    }
-                },
-                style: 'iframe {display: none !important;}',
-                pager: {
-                    type: 4,
-                    nextL: alimanhua_nextL,
-                    pageE: 'head>script:not([src])',
-                    insertP: ['#viewimages', 3],
-                    insertE: alimanhua_insertE,
-                    interval: 3000,
-                    scrollD: 3000
-                }
-            }, //         阿狸漫画 + 爱漫画
-            alimanhua_list: {
-                blank: 3,
-                pager: {
-                    nextL: '#pager>b+a',
-                    pageE: '#dmList>ul',
-                    replaceE: '#pager',
-                    scrollD: 800
-                },
-                function: {
-                    bF: "return fun.src_bF(pageE, [0, 'img[_src]', '_src'])"
-                }
-            }, //    阿狸漫画 - 分类/搜索页
             mangabz: {
                 host: ['mangabz.com', 'www.mangabz.com'],
                 url: ()=> {if (indexOF(/\/m\d+/)) {
@@ -1060,6 +1026,7 @@ function: {
                 }
             }, //           Mangabz 漫画
             mangabz_list: {
+                ignore: true,
                 blank: 4,
                 pager: {
                     nextL: '//div[contains(@class,"page-pagination")]//a[contains(text(), ">")]',
@@ -1068,7 +1035,7 @@ function: {
                     scrollD: 800
                 }
             }, //      Mangabz 漫画 - 分类/搜索页
-                        dm5: {
+            dm5: {
                 host: 'www.dm5.com',
                 url: ()=> {if (indexOF(/\/m\d+/)) {
                     setTimeout(mangabz_init, 1500);
@@ -1112,6 +1079,7 @@ function: {
                 }
             }, //           Xmanhua 漫画
             xmanhua_list: {
+                ignore: true,
                 blank: 4,
                 pager: {
                     nextL: '//div[@class="page-pagination"]//a[contains(text(), ">")]',
@@ -1320,7 +1288,7 @@ function: {
             if (getCSS('#autopbn')) { //         判断是否有 [下一页] 按钮
                 curSite = DBSite.discuz_forum;
             } else if (getCSS('#waterfall')) { //           判断是否为图片模式
-                if (!getCSS('#pgbtn, .pgbtn')) { //         如果各版块帖子列表已存在这个元素，说明自带了无缝翻页
+                if (!getCSS('#pgbtn.pgbtn>a[href^=javascript]')) { //       如果各版块帖子列表已存在这个元素，说明自带了无缝翻页
                     curSite = DBSite.discuz_waterfall; waterfallStyle(); // 图片模式列表样式预处理
                 }
             } else {
@@ -1472,124 +1440,6 @@ function: {
             }
         });
         return pageE
-    }
-
-
-    // [漫画猫] 初始化（显示本话所以图片）
-    function manhuacat_init() {
-        let _img = '';
-        for (let now of img_data_arr) {_img += `<img src="${asset_domain}${img_pre}${now}">`;}
-        getOne(curSite.pager.insertP[0]).innerHTML = _img;
-
-    }
-    // [漫画猫] 获取下一页地址
-    function manhuacat_nextL(pageE, type) {
-        if (type === 'url') {
-            if(pageE.code == '0000') {
-                if (pageE.url === curSite.pageUrl) return
-                curSite.pageUrl = pageE.url;
-                getPageE_(curSite.pageUrl); // 真正的下一页链接
-            }
-        } else {
-            let vg_r_data = getCSS('.vg-r-data');
-            if (vg_r_data) {
-                getPageE_(`${location.origin}/chapter_num?chapter_id=${vg_r_data.dataset.chapter_num}&ctype=1&type=${vg_r_data.dataset.chapterType};`, 'json', 'GET', '', 'url');
-            }
-        }
-    }
-    // [漫画猫] 插入数据
-    function manhuacat_insertE(pageE, type) {
-        if (!pageE) return
-        if (type === 'url') { // 获取下一页链接
-            manhuacat_nextL(pageE, type); return
-        }
-        addHistory(pageE);
-        replaceElems(pageE);
-
-        // 插入图片
-        let _img = '', _img_arr = LZString.decompressFromBase64(getXpath('//body/script[not(@src)][contains(text(), "img_data")]').textContent.split('"')[1]).split(','), vg_r_data = getCSS('.vg-r-data');;
-        for (let now of _img_arr) {_img += `<img src="${vg_r_data.dataset.chapterDomain}${img_pre}${now}">`;}
-        if (_img) {
-            getOne(curSite.pager.insertP[0]).insertAdjacentHTML(getAddTo(curSite.pager.insertP[1]), _img); // 将 img 标签插入到网页中
-            pageNumIncrement()
-        }
-    }
-
-
-
-    // [HiComic(嗨漫画)] 初始化（将本话其余图片插入网页中）
-    function hicomic_init() {
-        let _img = '';
-        getAllCSS('.chapter > section:not(:first-child) > section[val]').forEach(function (one) {
-            let src = one.getAttribute('val');
-            if (src.indexOf('!p_c_c_') === -1) src += '!p_c_c_h'
-            _img += `<img src="${src}">`
-        })
-        getOne(curSite.pager.insertP[0]).insertAdjacentHTML(getAddTo(curSite.pager.insertP[1]), _img); // 将 img 标签插入到网页中
-        window.document.title = window.document.title.replace(/(\(第.+\))? - HiComic/, `(${getCSS('.chapter_name').textContent}) - HiComic`); // 修改网页标题（加上 第 X 话）
-    }
-    // [HiComic(嗨漫画)] 获取下一页地址
-    function hicomic_nextL() {
-        let nextId;
-        nextId = getCSS('.next_chapter:not(.end)')
-        if (nextId && nextId.id && nextId.id != 'None') {
-            curSite.pageUrl = location.href;
-            getPageE_(`https://www.hicomic.net/api/web/chapter/${nextId.id}/contents`, 'json');
-        }
-    }
-    // [HiComic(嗨漫画)] 插入数据
-    function hicomic_insertE(pageE, type) {
-        if (!pageE || pageE.code != 200) return
-        if (pageE.results.chapter.next) { // 写入下一页的 UUID
-            getCSS('.next_chapter').id = pageE.results.chapter.next;
-        } else {
-            getCSS('.next_chapter').id = 'None';
-            getCSS('.next_chapter').classList.add('end');
-        }
-        curSite.pageUrl =`https://www.hicomic.net/chapters/${pageE.results.chapter.uuid}/contents`
-        getCSS('.chapter_name').textContent = pageE.results.chapter.name; // 修改漫画标题
-        addHistory(pageE, window.document.title.replace(/(\(第.+\))? - HiComic/, `(${pageE.results.chapter.name}) - HiComic`));
-        let _img = '';
-        for (let i = 0; i < pageE.results.chapter.contents.length; i++) { // 遍历图片文件名数组，组合为 img 标签
-            let src = pageE.results.chapter.contents[i].url;
-            if (src.indexOf('!p_c_c_') === -1) src += '!p_c_c_h';
-            _img += `<img src="${src}">`
-        }
-        getOne(curSite.pager.insertP[0]).insertAdjacentHTML(getAddTo(curSite.pager.insertP[1]), _img); // 将 img 标签插入到网页中
-        pageNumIncrement()
-    }
-
-
-    // [阿狸漫画] 获取下一页地址
-    function alimanhua_nextL(pageE, type) {
-        if (type === 'url') {
-            if(pageE.status == 1){
-                if (pageE.url === curSite.pageUrl) return
-                curSite.pageUrl = pageE.url;
-                getPageE_(curSite.pageUrl); // 真正的下一页链接
-            } else {
-                curSite = {SiteTypeID: 0}
-                alert("已经是最后一章！");
-            }
-        } else {
-            getPageE_(`${location.origin}/e/extend/ret_page/mindex.php?bid=${window.location.href.split("/")[4]}&id=${window.location.href.split("/")[5]}&u=1`, 'json', 'GET', '', 'url');
-        }
-    }
-    // [阿狸漫画] 插入数据
-    function alimanhua_insertE(pageE, type) {
-        if (!pageE) return
-        if (type === 'url') { // 获取下一页链接
-            alimanhua_nextL(pageE, type); return
-        }
-        insScript('head>script:not([src])', pageE);
-
-        // 插入图片
-        let _img = '', _host='http://res.img.tueqi.com/';
-        if (location.hostname == '') _host = 'https://res.img.96youhuiquan.com/'
-        for (let i=1;i<photosr.length;i++){_img += `<img src="${_host}${photosr[i]}">`;}
-        getCSS(curSite.pager.insertP[0]).insertAdjacentHTML(getAddTo(curSite.pager.insertP[1]), _img);
-        addHistory(pageE);
-        pageNumIncrement()
     }
 
 
@@ -2652,7 +2502,25 @@ function: {
         return document.title.indexOf(title) > -1;
     }
     // 判断规则中的 nextL、pageE、insertP、replaceE 元素是否存在于当前网页
-    function isPager(type = 'n,p') {
+    function isPager(type) {
+        if (!type) { // 如果没有指定要判断的元素类型参数，那么需要设置默认值
+            if (!DBSiteNow.pager) return false; // 如果连 pager 都没有，那么直接返回 false
+            if (DBSiteNow.pager.type === undefined || DBSiteNow.pager.type === 1 || DBSiteNow.pager.type === 3 || DBSiteNow.pager.type === 6) { // 如果是翻页模式 1 3 6，那么默认值可能是 n、p、n,p 三种
+                // 判断 nextL 是不是选择器（字符串 + 非 js; 开头）
+                if (typeof DBSiteNow.pager.nextL == 'string' && DBSiteNow.pager.nextL.match(/^js;/i) === null) {type = 'n';}
+                // 判断 pageE 是否不是空
+                if (DBSiteNow.pager.pageE) {
+                    // 如果 type 是空的，说明上面 nextL 判断结果为否，那么就是 p，反之则就是 n,p
+                    if (!type) {type = 'p';}else{type = 'n,p';}
+                }
+            } else if (DBSiteNow.pager.type === 2 || DBSiteNow.pager.type === 5) { // 如果是翻页模式 2 6，那么默认值只能是 n 一种
+                // 判断 nextL 是不是选择器（字符串 + 非 js; 开头）
+                if (typeof DBSiteNow.pager.nextL == 'string' && DBSiteNow.pager.nextL.match(/^js;/i) === null) {type = 'n';}
+            } else if (DBSiteNow.pager.type === 4) { // 如果是翻页模式 4，那么是不能使用 isPager 的（因为基本上都是脚本内的函数）
+                return false;
+            }
+            if (!type) return false; // 如果上面的判断中 nextL 和 pageE 都为否，那么 type 就还是空的，则直接返回 false
+        }
         const typeArr = 'n,p'.split(',');
         for (let i = 0; i < typeArr.length; i++) {
             switch (typeArr[i]) {
@@ -2744,7 +2612,7 @@ function: {
 // 下面示例是把所有规则都塞进去了，但实际上大部分都用不上，大多数网站只需要像第一个 "aaa" 这样的规则（下方 示例一 中 url、replaceE、scrollD 均可按需省略）：
 
 // "aaa"       是规则名，唯一，因为 自定义翻页规则 优先级最高，所以会覆盖同名的 外置翻页规则
-// "host"      是域名，支持正则表达式（如 示例四），也可以像这样 示例三 那样写多个域名或正则表达式（当然也可以混用）
+// "host"      是域名，支持正则表达式（如 示例四），也可以像这样 示例三 那样写多个域名或正则表达式（当然也可以混用），如果省略，则默认匹配所有域名（会对所有域名匹配 url 规则判断，可以当成一个简单的外置/自定义通用规则的方案）
 // "url"       是用来控制哪些网站中页面适用该规则，省略后代表该规则应用于全站（如果不知道写什么，那么就写 return fun.isPager() 这样脚本会默认自动匹配当前网站下存在 nextL 及 pageE 元素的网页，大部分网站是没问题的，如果改为匹配 replaceE 或者其他组合，那么请去上面的 Github Issues 里的 内置函数 中查看具体使用方法）
 
 // "nextL"     是用来指定含有下一页地址的元素选择器（CSS 或 XPath 都行，一般都是 &lt;a&gt; 元素）
